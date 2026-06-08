@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Castle Race Spin-to-Win</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero-panel" aria-labelledby="game-title">
+        <div class="brand-row">
+          <div>
+            <p class="eyebrow">Castle Fireworks Tournament</p>
+            <h1 id="game-title">Pick Your Knight</h1>
+          </div>
+          <button class="icon-button" id="fullscreenButton" type="button" aria-label="Enter fullscreen" title="Enter fullscreen">
+            <span aria-hidden="true">⛶</span>
+          </button>
+        </div>
+
+        <div class="choice-panel" aria-label="Choose a racing color">
+          <button class="choice-card red selected" type="button" data-color="red">
+            <span class="choice-standard"></span>
+            <span>Red</span>
+          </button>
+          <button class="choice-card white" type="button" data-color="white">
+            <span class="choice-standard"></span>
+            <span>White</span>
+          </button>
+          <button class="choice-card blue" type="button" data-color="blue">
+            <span class="choice-standard"></span>
+            <span>Blue</span>
+          </button>
+        </div>
+
+        <div class="controls">
+          <button class="go-button" id="goButton" type="button">GO!</button>
+          <button class="secondary-button" id="resetButton" type="button">Reset</button>
+        </div>
+      </section>
+
+      <section class="track-panel" aria-label="Knight race">
+        <div class="castle-backdrop" aria-hidden="true">
+          <div class="tower tower-left"></div>
+          <div class="tower tower-right"></div>
+          <div class="wall"></div>
+        </div>
+
+        <div class="race-status">
+          <span id="statusText">Choose a color, then start the tournament.</span>
+          <span id="timerText">Ready</span>
+        </div>
+
+        <div class="track" id="track">
+          <div class="finish-line" aria-hidden="true"></div>
+          <div class="lane red-lane" data-color="red">
+            <div class="lane-label">Red</div>
+            <div class="racer" data-racer="red">
+              <div class="lance"></div>
+              <div class="knight"></div>
+              <div class="horse">
+                <span class="head"></span>
+                <span class="body"></span>
+                <span class="leg leg-one"></span>
+                <span class="leg leg-two"></span>
+                <span class="leg leg-three"></span>
+                <span class="leg leg-four"></span>
+              </div>
+            </div>
+          </div>
+          <div class="lane white-lane" data-color="white">
+            <div class="lane-label">White</div>
+            <div class="racer" data-racer="white">
+              <div class="lance"></div>
+              <div class="knight"></div>
+              <div class="horse">
+                <span class="head"></span>
+                <span class="body"></span>
+                <span class="leg leg-one"></span>
+                <span class="leg leg-two"></span>
+                <span class="leg leg-three"></span>
+                <span class="leg leg-four"></span>
+              </div>
+            </div>
+          </div>
+          <div class="lane blue-lane" data-color="blue">
+            <div class="lane-label">Blue</div>
+            <div class="racer" data-racer="blue">
+              <div class="lance"></div>
+              <div class="knight"></div>
+              <div class="horse">
+                <span class="head"></span>
+                <span class="body"></span>
+                <span class="leg leg-one"></span>
+                <span class="leg leg-two"></span>
+                <span class="leg leg-three"></span>
+                <span class="leg leg-four"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="result-overlay" id="resultOverlay" hidden>
+      <section class="result-card" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+        <p class="eyebrow">Tournament Result</p>
+        <h2 id="resultTitle">Red Wins!</h2>
+        <p class="result-copy" id="resultCopy">You won 5% off your fireworks purchase.</p>
+        <button class="go-button" id="playAgainButton" type="button">Next Customer</button>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+
