@@ -203,24 +203,20 @@ function positionRacer(color, lapProgress) {
   const racer = racerElements[color];
   const bounds = track.getBoundingClientRect();
   const lane = laneOrder[color];
-  const centerX = bounds.width * 0.5;
-  const centerY = bounds.height * 0.55;
-  const rx = Math.max(120, bounds.width * 0.385 - lane * 30);
-  const ry = Math.max(86, bounds.height * 0.305 - lane * 22);
-  const startAngle = degreesToRadians(142);
-  const angle = startAngle - lapProgress * Math.PI * 2;
-  const nextAngle = startAngle - Math.min(lapProgress + 0.006, 1.03) * Math.PI * 2;
-  const x = centerX + Math.cos(angle) * rx;
-  const y = centerY + Math.sin(angle) * ry;
-  const nextX = centerX + Math.cos(nextAngle) * rx;
-  const nextY = centerY + Math.sin(nextAngle) * ry;
-  const rotation = Math.atan2(nextY - y, nextX - x);
-  const depthScale = 0.86 + (y / bounds.height) * 0.34;
-  const z = Math.round(20 + y);
+  const racerWidth = racer.getBoundingClientRect().width || 300;
+  const laneSpacing = Math.max(30, bounds.height * 0.048);
+  const startX = -racerWidth * 0.08;
+  const finishX = bounds.width * 0.76;
+  const curve = Math.sin(lapProgress * Math.PI);
+  const x = startX + (finishX - startX) * lapProgress;
+  const y = bounds.height * 0.58 + lane * laneSpacing + curve * bounds.height * 0.035;
+  const depthScale = 0.58 + lane * 0.07 + lapProgress * 0.08;
+  const pitch = Math.sin(lapProgress * Math.PI * 2) * 1.6;
+  const z = Math.round(50 + lane * 24 + lapProgress * 80);
 
   racer.style.zIndex = z;
-  racer.style.filter = `brightness(${0.92 + depthScale * 0.12})`;
-  racer.style.transform = `translate(${x - 78}px, ${y - 44}px) rotate(${rotation}rad) scale(${depthScale})`;
+  racer.style.filter = `brightness(${0.92 + depthScale * 0.13})`;
+  racer.style.transform = `translate(${x}px, ${y}px) rotate(${pitch}deg) scale(${depthScale})`;
 }
 
 function toggleFullscreen() {

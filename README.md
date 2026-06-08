@@ -46,3 +46,11 @@ This version has no backend and no build step. It can be deployed from this fold
 - Crowd swells play during the race and on lead changes.
 - Finish fanfare plays when the winner is revealed.
 - Sound On/Off toggle is available in the control panel.
+
+## V1.3 Realism Pass
+
+- Added generated cinematic racetrack background art.
+- Replaced CSS-built horses with rendered knight/horse PNG sprites.
+- Added transparent racer assets for red, white, and blue knights.
+- Changed racer motion from overhead oval rotation to broadcast-style side-view racing down the track.
+- Added dust and motion focus effects to reduce the flat arcade feel.

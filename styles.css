@@ -906,3 +906,119 @@ h2 {
     width: 4rem;
   }
 }
+
+/* Cinematic raster pass: generated track art plus rendered horse/knight sprites. */
+.racecourse {
+  min-height: clamp(32rem, 62vw, 47rem);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.28)),
+    url("assets/castle-track-bg.png") center / cover no-repeat;
+}
+
+.racecourse::before {
+  inset: 0;
+  z-index: 1;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.36), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.34)),
+    radial-gradient(circle at 66% 17%, rgba(255, 222, 145, 0.2), transparent 18rem);
+  filter: none;
+  pointer-events: none;
+}
+
+.track-oval,
+.grandstand,
+.starting-gate,
+.rail {
+  display: none;
+}
+
+.finish-arch {
+  right: 11%;
+  top: 31%;
+  height: 42%;
+  opacity: 0.82;
+}
+
+.racer {
+  width: clamp(15rem, 24vw, 26rem);
+  height: auto;
+  transform-origin: 44% 82%;
+  transition: transform 120ms linear, filter 160ms linear, opacity 160ms linear;
+}
+
+.racer-shadow {
+  left: 9%;
+  right: 11%;
+  bottom: 3%;
+  height: 12%;
+  background: rgba(0, 0, 0, 0.38);
+  filter: blur(8px);
+  transform: skewX(-14deg);
+}
+
+.racer-art {
+  position: relative;
+  z-index: 3;
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0.65rem 0.55rem rgba(0, 0, 0, 0.42));
+}
+
+.dust {
+  position: absolute;
+  left: -16%;
+  right: 40%;
+  bottom: 1%;
+  z-index: 2;
+  height: 20%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(218, 178, 119, 0.42), rgba(218, 178, 119, 0.07) 62%, transparent 74%);
+  filter: blur(10px);
+  opacity: 0;
+}
+
+.racecourse.racing .racer {
+  animation: cinematic-bob 360ms infinite ease-in-out;
+}
+
+.racecourse.racing .racer-art {
+  animation: motion-focus 520ms infinite ease-in-out;
+}
+
+.racecourse.racing .dust {
+  animation: dust-roll 700ms infinite ease-in-out;
+}
+
+@keyframes cinematic-bob {
+  0%,
+  100% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: -0.42rem;
+  }
+}
+
+@keyframes motion-focus {
+  0%,
+  100% {
+    filter: drop-shadow(0 0.65rem 0.55rem rgba(0, 0, 0, 0.42)) saturate(1.05);
+  }
+  50% {
+    filter: drop-shadow(0 0.85rem 0.75rem rgba(0, 0, 0, 0.46)) saturate(1.16);
+  }
+}
+
+@keyframes dust-roll {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translateX(0) scale(0.9);
+  }
+  50% {
+    opacity: 0.62;
+    transform: translateX(-7%) scale(1.18);
+  }
+}
