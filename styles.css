@@ -182,7 +182,7 @@ h2 {
 
 .controls {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   margin-top: auto;
 }
@@ -198,16 +198,22 @@ h2 {
 }
 
 .go-button {
+  grid-column: 1 / -1;
   color: #1d1600;
   background: linear-gradient(180deg, #fff0a5, var(--gold));
   box-shadow: 0 0.55rem 0 var(--gold-dark);
 }
 
 .secondary-button {
-  min-width: 7rem;
+  min-width: 6.7rem;
   color: var(--ink);
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.sound-button[aria-pressed="true"] {
+  border-color: rgba(242, 201, 76, 0.62);
+  color: var(--gold);
 }
 
 .go-button:disabled {

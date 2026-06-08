@@ -15,12 +15,17 @@ const state = {
   raceDuration: 0,
   winner: null,
   prize: null,
-  lastLeader: null
+  lastLeader: null,
+  soundEnabled: true,
+  audioContext: null,
+  hoofbeatTimer: null,
+  crowdTimer: null
 };
 
 const choiceButtons = [...document.querySelectorAll(".choice-card")];
 const goButton = document.querySelector("#goButton");
 const resetButton = document.querySelector("#resetButton");
+const soundButton = document.querySelector("#soundButton");
 const fullscreenButton = document.querySelector("#fullscreenButton");
 const playAgainButton = document.querySelector("#playAgainButton");
 const statusText = document.querySelector("#statusText");
@@ -50,6 +55,7 @@ choiceButtons.forEach((button) => {
 
 goButton.addEventListener("click", startRace);
 resetButton.addEventListener("click", resetGame);
+soundButton.addEventListener("click", toggleSound);
 playAgainButton.addEventListener("click", resetGame);
 fullscreenButton.addEventListener("click", toggleFullscreen);
 
@@ -62,6 +68,10 @@ function startRace() {
   state.lastLeader = null;
   state.raceStartedAt = performance.now();
   state.raceDuration = randomBetween(19000, 24000);
+
+  prepareAudio();
+  playStartHorn();
+  startRaceAudio();
 
   goButton.disabled = true;
   choiceButtons.forEach((button) => {
@@ -94,6 +104,7 @@ function animateRace(now) {
   if (standings[0]?.color && standings[0].color !== state.lastLeader && progress > 0.08 && progress < 0.92) {
     state.lastLeader = standings[0].color;
     statusText.textContent = `${capitalize(state.lastLeader)} takes the lead!`;
+    playCrowdPop();
   }
 
   const secondsLeft = Math.max(0, Math.ceil((state.raceDuration - elapsed) / 1000));
@@ -111,6 +122,7 @@ function finishRace() {
   state.isRacing = false;
   cancelAnimationFrame(state.animationFrame);
   track.classList.remove("racing");
+  stopRaceAudio();
 
   racers.forEach((color) => {
     const finishProgress = color === state.winner ? 1.02 : color === state.selectedColor ? 0.985 : 0.972;
@@ -125,6 +137,7 @@ function finishRace() {
   statusText.textContent = selectedWon ? "Winning pick!" : "Race complete.";
   timerText.textContent = "Done";
   resultOverlay.hidden = false;
+  playFinishFanfare(selectedWon);
 }
 
 function resetGame() {
@@ -134,6 +147,7 @@ function resetGame() {
   state.winner = null;
   state.prize = null;
   state.lastLeader = null;
+  stopRaceAudio();
 
   placeRacersAtStart();
 
@@ -216,6 +230,187 @@ function toggleFullscreen() {
   }
 
   document.exitFullscreen?.();
+}
+
+function toggleSound() {
+  state.soundEnabled = !state.soundEnabled;
+  soundButton.textContent = state.soundEnabled ? "Sound On" : "Sound Off";
+  soundButton.setAttribute("aria-pressed", String(state.soundEnabled));
+
+  if (!state.soundEnabled) {
+    stopRaceAudio();
+    return;
+  }
+
+  prepareAudio();
+  playTone({ frequency: 740, duration: 0.08, type: "triangle", gain: 0.08 });
+}
+
+function prepareAudio() {
+  if (!state.soundEnabled) return null;
+
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) {
+    state.soundEnabled = false;
+    soundButton.textContent = "Sound Off";
+    soundButton.setAttribute("aria-pressed", "false");
+    return null;
+  }
+
+  if (!state.audioContext) {
+    state.audioContext = new AudioContext();
+  }
+
+  if (state.audioContext.state === "suspended") {
+    state.audioContext.resume();
+  }
+
+  return state.audioContext;
+}
+
+function startRaceAudio() {
+  if (!state.soundEnabled || state.hoofbeatTimer) return;
+
+  let beat = 0;
+  state.hoofbeatTimer = window.setInterval(() => {
+    playHoofbeat(beat);
+    beat += 1;
+  }, 155);
+
+  state.crowdTimer = window.setInterval(() => {
+    playCrowdWash(0.035);
+  }, 1800);
+}
+
+function stopRaceAudio() {
+  if (state.hoofbeatTimer) {
+    clearInterval(state.hoofbeatTimer);
+    state.hoofbeatTimer = null;
+  }
+
+  if (state.crowdTimer) {
+    clearInterval(state.crowdTimer);
+    state.crowdTimer = null;
+  }
+}
+
+function playStartHorn() {
+  const ctx = prepareAudio();
+  if (!ctx) return;
+
+  playTone({ frequency: 392, duration: 0.22, type: "sawtooth", gain: 0.11 });
+  window.setTimeout(() => playTone({ frequency: 523.25, duration: 0.28, type: "sawtooth", gain: 0.12 }), 170);
+  window.setTimeout(() => playTone({ frequency: 659.25, duration: 0.34, type: "sawtooth", gain: 0.13 }), 380);
+}
+
+function playFinishFanfare(selectedWon) {
+  const ctx = prepareAudio();
+  if (!ctx) return;
+
+  const notes = selectedWon
+    ? [523.25, 659.25, 783.99, 1046.5]
+    : [392, 493.88, 587.33, 783.99];
+
+  notes.forEach((frequency, index) => {
+    window.setTimeout(() => {
+      playTone({ frequency, duration: 0.18 + index * 0.04, type: "triangle", gain: 0.13 });
+    }, index * 125);
+  });
+
+  window.setTimeout(() => playCrowdPop(0.18), 220);
+}
+
+function playHoofbeat(beat) {
+  const ctx = prepareAudio();
+  if (!ctx) return;
+
+  const time = ctx.currentTime;
+  const mainGain = 0.09 + (beat % 4 === 0 ? 0.035 : 0);
+
+  playPercussion({ time, frequency: 92, duration: 0.055, gain: mainGain });
+  playPercussion({ time: time + 0.045, frequency: 128, duration: 0.045, gain: mainGain * 0.78 });
+  playNoiseBurst({ time: time + 0.008, duration: 0.035, gain: 0.022 });
+}
+
+function playCrowdPop(gain = 0.08) {
+  playCrowdWash(gain);
+  window.setTimeout(() => playTone({ frequency: 880, duration: 0.08, type: "square", gain: 0.035 }), 70);
+}
+
+function playCrowdWash(gain = 0.04) {
+  const ctx = prepareAudio();
+  if (!ctx) return;
+
+  playNoiseBurst({ time: ctx.currentTime, duration: 0.55, gain, filterFrequency: 950 });
+}
+
+function playTone({ frequency, duration, type = "sine", gain = 0.08 }) {
+  const ctx = prepareAudio();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const oscillator = ctx.createOscillator();
+  const volume = ctx.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, now);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(40, frequency * 0.92), now + duration);
+  volume.gain.setValueAtTime(0.0001, now);
+  volume.gain.exponentialRampToValueAtTime(gain, now + 0.02);
+  volume.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  oscillator.connect(volume);
+  volume.connect(ctx.destination);
+  oscillator.start(now);
+  oscillator.stop(now + duration + 0.03);
+}
+
+function playPercussion({ time, frequency, duration, gain }) {
+  const ctx = prepareAudio();
+  if (!ctx) return;
+
+  const oscillator = ctx.createOscillator();
+  const volume = ctx.createGain();
+
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(frequency, time);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(38, frequency * 0.48), time + duration);
+  volume.gain.setValueAtTime(gain, time);
+  volume.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+  oscillator.connect(volume);
+  volume.connect(ctx.destination);
+  oscillator.start(time);
+  oscillator.stop(time + duration + 0.02);
+}
+
+function playNoiseBurst({ time, duration, gain, filterFrequency = 420 }) {
+  const ctx = prepareAudio();
+  if (!ctx) return;
+
+  const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < bufferSize; i += 1) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  }
+
+  const source = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const volume = ctx.createGain();
+
+  source.buffer = buffer;
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(filterFrequency, time);
+  volume.gain.setValueAtTime(gain, time);
+  volume.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+  source.connect(filter);
+  filter.connect(volume);
+  volume.connect(ctx.destination);
+  source.start(time);
+  source.stop(time + duration);
 }
 
 function easeOutCubic(value) {

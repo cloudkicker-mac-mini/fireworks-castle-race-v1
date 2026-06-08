@@ -37,3 +37,12 @@ This version has no backend and no build step. It can be deployed from this fold
 - Added rails, infield, grandstand, starting gate, and finish arch.
 - Reworked racers into larger horses with knights, saddles, lances, and pennants.
 - Racers now move around the oval with lane depth, rotation, and lead-change announcements.
+
+## V1.2 Sound Pass
+
+- Added Web Audio sound effects with no external audio files.
+- GO triggers a tournament horn and unlocks browser audio.
+- Hoofbeats play throughout the race.
+- Crowd swells play during the race and on lead changes.
+- Finish fanfare plays when the winner is revealed.
+- Sound On/Off toggle is available in the control panel.
