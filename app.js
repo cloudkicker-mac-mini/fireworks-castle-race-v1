@@ -16,6 +16,8 @@ const state = {
   winner: null,
   prize: null,
   lastLeader: null,
+  lastAnnounceAt: 0,
+  finalStretchCalled: false,
   soundEnabled: true,
   audioContext: null,
   hoofbeatTimer: null,
@@ -66,12 +68,16 @@ function startRace() {
   state.winner = pickWinner();
   state.prize = pickPrize();
   state.lastLeader = null;
+  state.lastAnnounceAt = 0;
+  state.finalStretchCalled = false;
   state.raceStartedAt = performance.now();
   state.raceDuration = randomBetween(19000, 24000);
 
   prepareAudio();
+  prepareAnnouncer();
   playStartHorn();
   startRaceAudio();
+  announce(`And they're off! Red, white, and blue charge down the castle track!`, { force: true, delay: 650 });
 
   goButton.disabled = true;
   choiceButtons.forEach((button) => {
@@ -105,6 +111,14 @@ function animateRace(now) {
     state.lastLeader = standings[0].color;
     statusText.textContent = `${capitalize(state.lastLeader)} takes the lead!`;
     playCrowdPop();
+    announceLeadChange(standings, progress);
+  }
+
+  if (!state.finalStretchCalled && progress > 0.72) {
+    state.finalStretchCalled = true;
+    const leader = standings[0]?.color || state.winner;
+    const challenger = standings.find((entry) => entry.color !== leader)?.color || state.selectedColor;
+    announce(`Final stretch! ${capitalize(leader)} has the rail, with ${capitalize(challenger)} trying to close!`, { minGap: 2400 });
   }
 
   const secondsLeft = Math.max(0, Math.ceil((state.raceDuration - elapsed) / 1000));
@@ -138,6 +152,12 @@ function finishRace() {
   timerText.textContent = "Done";
   resultOverlay.hidden = false;
   playFinishFanfare(selectedWon);
+  announce(
+    selectedWon
+      ? `${capitalize(state.winner)} wins it! You picked the winning knight!`
+      : `${capitalize(state.winner)} wins the tournament!`,
+    { force: true, delay: 350 }
+  );
 }
 
 function resetGame() {
@@ -147,7 +167,10 @@ function resetGame() {
   state.winner = null;
   state.prize = null;
   state.lastLeader = null;
+  state.lastAnnounceAt = 0;
+  state.finalStretchCalled = false;
   stopRaceAudio();
+  stopAnnouncer();
 
   placeRacersAtStart();
 
@@ -249,11 +272,14 @@ function toggleSound() {
 
   if (!state.soundEnabled) {
     stopRaceAudio();
+    stopAnnouncer();
     return;
   }
 
   prepareAudio();
+  prepareAnnouncer();
   playTone({ frequency: 740, duration: 0.08, type: "triangle", gain: 0.08 });
+  announce("Announcer on.", { force: true });
 }
 
 function prepareAudio() {
@@ -421,6 +447,77 @@ function playNoiseBurst({ time, duration, gain, filterFrequency = 420 }) {
   volume.connect(ctx.destination);
   source.start(time);
   source.stop(time + duration);
+}
+
+function prepareAnnouncer() {
+  if (!state.soundEnabled || !("speechSynthesis" in window)) return null;
+
+  window.speechSynthesis.getVoices();
+  return window.speechSynthesis;
+}
+
+function stopAnnouncer() {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function announceLeadChange(standings, progress) {
+  const leader = standings[0]?.color;
+  if (!leader) return;
+
+  const second = standings[1]?.color;
+  const calls = [
+    `${capitalize(leader)} moves out in front!`,
+    `${capitalize(leader)} takes the lead on the outside!`,
+    `${capitalize(leader)} surges ahead!`
+  ];
+
+  if (second && progress > 0.35) {
+    calls.push(`${capitalize(leader)} leads, but ${capitalize(second)} is right there!`);
+  }
+
+  announce(calls[Math.floor(Math.random() * calls.length)], { minGap: 2600 });
+}
+
+function announce(text, options = {}) {
+  if (!state.soundEnabled || !("speechSynthesis" in window)) return;
+
+  const now = performance.now();
+  const minGap = options.minGap ?? 1800;
+  if (!options.force && now - state.lastAnnounceAt < minGap) return;
+
+  const speak = () => {
+    if (!state.soundEnabled || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voice = pickAnnouncerVoice();
+    if (voice) utterance.voice = voice;
+    utterance.rate = 1.18;
+    utterance.pitch = 0.82;
+    utterance.volume = 0.92;
+    window.speechSynthesis.speak(utterance);
+    state.lastAnnounceAt = performance.now();
+  };
+
+  if (options.delay) {
+    window.setTimeout(speak, options.delay);
+    return;
+  }
+
+  speak();
+}
+
+function pickAnnouncerVoice() {
+  if (!("speechSynthesis" in window)) return null;
+
+  const voices = window.speechSynthesis.getVoices();
+  return (
+    voices.find((voice) => /Daniel|Alex|Fred|Google US English|Microsoft David/i.test(voice.name)) ||
+    voices.find((voice) => voice.lang?.startsWith("en")) ||
+    null
+  );
 }
 
 function easeOutCubic(value) {

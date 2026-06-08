@@ -54,3 +54,10 @@ This version has no backend and no build step. It can be deployed from this fold
 - Added transparent racer assets for red, white, and blue knights.
 - Changed racer motion from overhead oval rotation to broadcast-style side-view racing down the track.
 - Added dust and motion focus effects to reduce the flat arcade feel.
+
+## V1.4 Announcer Pass
+
+- Added browser speech-synthesis announcer calls.
+- Announcer calls the start, lead changes, final stretch, and winner.
+- Sound On/Off now controls sound effects and announcer together.
+- Uses built-in browser voices, so no external audio files are required.
