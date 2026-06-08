@@ -47,56 +47,90 @@
           <div class="wall"></div>
         </div>
 
-        <div class="race-status">
-          <span id="statusText">Choose a color, then start the tournament.</span>
-          <span id="timerText">Ready</span>
+        <div class="scoreboard">
+          <div class="race-status">
+            <span id="statusText">Choose a color, then start the tournament.</span>
+            <span id="timerText">Ready</span>
+          </div>
+          <div class="leaderboard" aria-label="Race colors">
+            <span class="leader-chip red-chip">Red</span>
+            <span class="leader-chip white-chip">White</span>
+            <span class="leader-chip blue-chip">Blue</span>
+          </div>
         </div>
 
-        <div class="track" id="track">
-          <div class="finish-line" aria-hidden="true"></div>
-          <div class="lane red-lane" data-color="red">
-            <div class="lane-label">Red</div>
-            <div class="racer" data-racer="red">
-              <div class="lance"></div>
-              <div class="knight"></div>
-              <div class="horse">
-                <span class="head"></span>
-                <span class="body"></span>
-                <span class="leg leg-one"></span>
-                <span class="leg leg-two"></span>
-                <span class="leg leg-three"></span>
-                <span class="leg leg-four"></span>
-              </div>
+        <div class="racecourse" id="track">
+          <div class="grandstand" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="track-oval" aria-hidden="true">
+            <div class="track-band track-band-one"></div>
+            <div class="track-band track-band-two"></div>
+            <div class="track-band track-band-three"></div>
+            <div class="infield">
+              <div class="crest">Tournament<br>Track</div>
             </div>
           </div>
-          <div class="lane white-lane" data-color="white">
-            <div class="lane-label">White</div>
-            <div class="racer" data-racer="white">
-              <div class="lance"></div>
-              <div class="knight"></div>
-              <div class="horse">
-                <span class="head"></span>
-                <span class="body"></span>
-                <span class="leg leg-one"></span>
-                <span class="leg leg-two"></span>
-                <span class="leg leg-three"></span>
-                <span class="leg leg-four"></span>
-              </div>
+          <div class="finish-arch" aria-hidden="true">
+            <span>Finish</span>
+          </div>
+          <div class="starting-gate" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="rail rail-top" aria-hidden="true"></div>
+          <div class="rail rail-bottom" aria-hidden="true"></div>
+
+          <div class="racer red-racer" data-racer="red">
+            <div class="racer-shadow"></div>
+            <div class="lance"></div>
+            <div class="pennant"></div>
+            <div class="knight"></div>
+            <div class="horse">
+              <span class="tail"></span>
+              <span class="mane"></span>
+              <span class="head"></span>
+              <span class="body"></span>
+              <span class="saddle"></span>
+              <span class="leg leg-one"></span>
+              <span class="leg leg-two"></span>
+              <span class="leg leg-three"></span>
+              <span class="leg leg-four"></span>
             </div>
           </div>
-          <div class="lane blue-lane" data-color="blue">
-            <div class="lane-label">Blue</div>
-            <div class="racer" data-racer="blue">
-              <div class="lance"></div>
-              <div class="knight"></div>
-              <div class="horse">
-                <span class="head"></span>
-                <span class="body"></span>
-                <span class="leg leg-one"></span>
-                <span class="leg leg-two"></span>
-                <span class="leg leg-three"></span>
-                <span class="leg leg-four"></span>
-              </div>
+
+          <div class="racer white-racer" data-racer="white">
+            <div class="racer-shadow"></div>
+            <div class="lance"></div>
+            <div class="pennant"></div>
+            <div class="knight"></div>
+            <div class="horse">
+              <span class="tail"></span>
+              <span class="mane"></span>
+              <span class="head"></span>
+              <span class="body"></span>
+              <span class="saddle"></span>
+              <span class="leg leg-one"></span>
+              <span class="leg leg-two"></span>
+              <span class="leg leg-three"></span>
+              <span class="leg leg-four"></span>
+            </div>
+          </div>
+
+          <div class="racer blue-racer" data-racer="blue">
+            <div class="racer-shadow"></div>
+            <div class="lance"></div>
+            <div class="pennant"></div>
+            <div class="knight"></div>
+            <div class="horse">
+              <span class="tail"></span>
+              <span class="mane"></span>
+              <span class="head"></span>
+              <span class="body"></span>
+              <span class="saddle"></span>
+              <span class="leg leg-one"></span>
+              <span class="leg leg-two"></span>
+              <span class="leg leg-three"></span>
+              <span class="leg leg-four"></span>
             </div>
           </div>
         </div>
@@ -115,4 +149,3 @@
     <script src="app.js"></script>
   </body>
 </html>
-

@@ -14,7 +14,8 @@ const state = {
   raceStartedAt: 0,
   raceDuration: 0,
   winner: null,
-  prize: null
+  prize: null,
+  lastLeader: null
 };
 
 const choiceButtons = [...document.querySelectorAll(".choice-card")];
@@ -31,6 +32,12 @@ const track = document.querySelector("#track");
 const racerElements = Object.fromEntries(
   racers.map((color) => [color, document.querySelector(`[data-racer="${color}"]`)])
 );
+const laneOrder = { red: 0, white: 1, blue: 2 };
+
+placeRacersAtStart();
+window.addEventListener("resize", () => {
+  if (!state.isRacing) placeRacersAtStart();
+});
 
 choiceButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -52,8 +59,9 @@ function startRace() {
   state.isRacing = true;
   state.winner = pickWinner();
   state.prize = pickPrize();
+  state.lastLeader = null;
   state.raceStartedAt = performance.now();
-  state.raceDuration = randomBetween(18000, 23000);
+  state.raceDuration = randomBetween(19000, 24000);
 
   goButton.disabled = true;
   choiceButtons.forEach((button) => {
@@ -69,20 +77,24 @@ function startRace() {
 function animateRace(now) {
   const elapsed = now - state.raceStartedAt;
   const progress = clamp(elapsed / state.raceDuration, 0, 1);
-  const trackWidth = track.getBoundingClientRect().width;
-  const finishX = Math.max(0, trackWidth - 220);
+  const standings = [];
 
   racers.forEach((color, index) => {
-    const racer = racerElements[color];
-    const base = easeOutCubic(progress) * finishX;
-    const drama = Math.sin(progress * Math.PI * 9 + index * 1.7) * 42;
-    const surge = Math.sin(progress * Math.PI * 17 + index * 2.4) * 22;
-    const laneBias = leadBias(color, progress) * 82;
-    const finalPush = color === state.winner ? Math.pow(progress, 7) * 120 : -Math.pow(progress, 6) * 35;
-    const x = clamp(base + drama + surge + laneBias + finalPush, 0, finishX + 72);
+    const drama = Math.sin(progress * Math.PI * 8 + index * 1.85) * 0.018;
+    const surge = Math.sin(progress * Math.PI * 15 + index * 2.35) * 0.009;
+    const phaseBoost = leadBias(color, progress) * 0.032;
+    const finalPush = color === state.winner ? Math.pow(progress, 7) * 0.08 : -Math.pow(progress, 6) * 0.022;
+    const lapProgress = clamp(progress + drama + surge + phaseBoost + finalPush, 0, color === state.winner ? 1.02 : 0.985);
 
-    racer.style.transform = `translateX(${x}px)`;
+    positionRacer(color, lapProgress);
+    standings.push({ color, lapProgress });
   });
+
+  standings.sort((a, b) => b.lapProgress - a.lapProgress);
+  if (standings[0]?.color && standings[0].color !== state.lastLeader && progress > 0.08 && progress < 0.92) {
+    state.lastLeader = standings[0].color;
+    statusText.textContent = `${capitalize(state.lastLeader)} takes the lead!`;
+  }
 
   const secondsLeft = Math.max(0, Math.ceil((state.raceDuration - elapsed) / 1000));
   timerText.textContent = secondsLeft > 0 ? `${secondsLeft}s` : "Finish!";
@@ -101,11 +113,8 @@ function finishRace() {
   track.classList.remove("racing");
 
   racers.forEach((color) => {
-    const racer = racerElements[color];
-    const trackWidth = track.getBoundingClientRect().width;
-    const finishX = Math.max(0, trackWidth - 220);
-    const offset = color === state.winner ? 72 : color === state.selectedColor ? -18 : -42;
-    racer.style.transform = `translateX(${finishX + offset}px)`;
+    const finishProgress = color === state.winner ? 1.02 : color === state.selectedColor ? 0.985 : 0.972;
+    positionRacer(color, finishProgress);
   });
 
   const selectedWon = state.selectedColor === state.winner;
@@ -124,10 +133,9 @@ function resetGame() {
   state.animationFrame = null;
   state.winner = null;
   state.prize = null;
+  state.lastLeader = null;
 
-  racers.forEach((color) => {
-    racerElements[color].style.transform = "translateX(0)";
-  });
+  placeRacersAtStart();
 
   track.classList.remove("racing");
   resultOverlay.hidden = true;
@@ -171,6 +179,36 @@ function leadBias(color, progress) {
   }, 0);
 }
 
+function placeRacersAtStart() {
+  racers.forEach((color) => {
+    positionRacer(color, 0);
+  });
+}
+
+function positionRacer(color, lapProgress) {
+  const racer = racerElements[color];
+  const bounds = track.getBoundingClientRect();
+  const lane = laneOrder[color];
+  const centerX = bounds.width * 0.5;
+  const centerY = bounds.height * 0.55;
+  const rx = Math.max(120, bounds.width * 0.385 - lane * 30);
+  const ry = Math.max(86, bounds.height * 0.305 - lane * 22);
+  const startAngle = degreesToRadians(142);
+  const angle = startAngle - lapProgress * Math.PI * 2;
+  const nextAngle = startAngle - Math.min(lapProgress + 0.006, 1.03) * Math.PI * 2;
+  const x = centerX + Math.cos(angle) * rx;
+  const y = centerY + Math.sin(angle) * ry;
+  const nextX = centerX + Math.cos(nextAngle) * rx;
+  const nextY = centerY + Math.sin(nextAngle) * ry;
+  const rotation = Math.atan2(nextY - y, nextX - x);
+  const depthScale = 0.86 + (y / bounds.height) * 0.34;
+  const z = Math.round(20 + y);
+
+  racer.style.zIndex = z;
+  racer.style.filter = `brightness(${0.92 + depthScale * 0.12})`;
+  racer.style.transform = `translate(${x - 78}px, ${y - 44}px) rotate(${rotation}rad) scale(${depthScale})`;
+}
+
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen?.();
@@ -186,6 +224,10 @@ function easeOutCubic(value) {
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min);
+}
+
+function degreesToRadians(value) {
+  return (value * Math.PI) / 180;
 }
 
 function clamp(value, min, max) {

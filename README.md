@@ -24,10 +24,16 @@ This version has no backend and no build step. It can be deployed from this fold
 
 - Customer picks Red, White, or Blue.
 - Customer taps GO.
-- Three castle-themed knight horses race for about 18-23 seconds.
+- Three castle-themed knight horses race for about 19-24 seconds.
 - Horses trade leads during the race.
 - Final winner is selected before animation starts.
 - Prize reveal appears at the end.
 - Fullscreen button supports kiosk-style operation.
 - Reset button prepares the next customer.
 
+## V1.1 Visual Pass
+
+- Replaced straight lanes with an oval dirt horse-racing track.
+- Added rails, infield, grandstand, starting gate, and finish arch.
+- Reworked racers into larger horses with knights, saddles, lances, and pennants.
+- Racers now move around the oval with lane depth, rotation, and lead-change announcements.
