@@ -204,15 +204,29 @@ function positionRacer(color, lapProgress) {
   const bounds = track.getBoundingClientRect();
   const lane = laneOrder[color];
   const racerWidth = racer.getBoundingClientRect().width || 300;
-  const laneSpacing = Math.max(30, bounds.height * 0.048);
-  const startX = -racerWidth * 0.08;
-  const finishX = bounds.width * 0.76;
-  const curve = Math.sin(lapProgress * Math.PI);
-  const x = startX + (finishX - startX) * lapProgress;
-  const y = bounds.height * 0.58 + lane * laneSpacing + curve * bounds.height * 0.035;
-  const depthScale = 0.58 + lane * 0.07 + lapProgress * 0.08;
-  const pitch = Math.sin(lapProgress * Math.PI * 2) * 1.6;
-  const z = Math.round(50 + lane * 24 + lapProgress * 80);
+  const laneOffset = (lane - 1) * Math.max(18, bounds.height * 0.034);
+  const t = easeInOutSine(clamp(lapProgress, 0, 1.04));
+  const start = {
+    x: bounds.width * 0.035,
+    y: bounds.height * 0.68 + laneOffset * 1.05
+  };
+  const control = {
+    x: bounds.width * 0.43,
+    y: bounds.height * 0.55 + laneOffset * 0.68
+  };
+  const finish = {
+    x: bounds.width * 0.78,
+    y: bounds.height * 0.36 + laneOffset * 0.42
+  };
+  const point = quadraticPoint(start, control, finish, t);
+  const ahead = quadraticPoint(start, control, finish, Math.min(t + 0.012, 1));
+  const trackAngle = Math.atan2(ahead.y - point.y, ahead.x - point.x) * (180 / Math.PI);
+  const finishSurge = Math.max(0, lapProgress - 1) * bounds.width * 0.16;
+  const x = point.x + finishSurge - racerWidth * 0.08;
+  const y = point.y;
+  const depthScale = 0.72 + lane * 0.055 - t * 0.18;
+  const pitch = clamp(trackAngle, -18, 8) + Math.sin(lapProgress * Math.PI * 2) * 0.8;
+  const z = Math.round(200 - y + lane * 16);
 
   racer.style.zIndex = z;
   racer.style.filter = `brightness(${0.92 + depthScale * 0.13})`;
@@ -419,6 +433,19 @@ function randomBetween(min, max) {
 
 function degreesToRadians(value) {
   return (value * Math.PI) / 180;
+}
+
+function quadraticPoint(start, control, end, amount) {
+  const inverse = 1 - amount;
+
+  return {
+    x: inverse * inverse * start.x + 2 * inverse * amount * control.x + amount * amount * end.x,
+    y: inverse * inverse * start.y + 2 * inverse * amount * control.y + amount * amount * end.y
+  };
+}
+
+function easeInOutSine(value) {
+  return -(Math.cos(Math.PI * value) - 1) / 2;
 }
 
 function clamp(value, min, max) {
